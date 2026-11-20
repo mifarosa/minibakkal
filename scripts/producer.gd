@@ -46,6 +46,18 @@ func _process(delta: float) -> void:
 			_refresh()
 
 
+func take_one() -> bool:
+	if stock <= 0:
+		return false
+	stock -= 1
+	_refresh()
+	return true
+
+
+func stand_point() -> Vector3:
+	return global_position + Vector3(0, 0, 1.6)
+
+
 func _refresh() -> void:
 	_label.text = "%d/%d" % [stock, capacity]
 	for c in _items.get_children():

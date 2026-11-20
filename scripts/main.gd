@@ -8,6 +8,7 @@ const CashierScript := preload("res://scripts/cashier.gd")
 const CustomerScript := preload("res://scripts/customer.gd")
 const UnlockScript := preload("res://scripts/unlock_zone.gd")
 const JoystickScript := preload("res://scripts/joystick.gd")
+const StaffScript := preload("res://scripts/staff.gd")
 
 const CAM_OFFSET := Vector3(12, 14, 12)
 const ENTRANCE := Vector3(15, 0, 0)
@@ -16,6 +17,7 @@ var player: CharacterBody3D
 var cam: Camera3D
 var cashier: Node3D
 var shelves: Array[Node3D] = []
+var producers: Array[Node3D] = []
 var _money_label: Label
 var _customers := 0
 
@@ -116,6 +118,8 @@ func _build_stations() -> void:
 		_add_shelf("corn", Vector3(13, 0, -7)))
 	_add_unlock("tomato2", 300, Vector3(1, 0, 3.5), func():
 		_add_producer("tomato", Vector3(1, 0, 7.5), 4, 2.5))
+	_add_unlock("staff1", 150, Vector3(-3, 0, -6.5), func(): _hire_staff(Vector3(-3, 0, -6)))
+	_add_unlock("staff2", 400, Vector3(0, 0, -6.5), func(): _hire_staff(Vector3(0, 0, -6)))
 	_add_unlock("cashier", 200, Vector3(-3, 0, 0), func():
 		cashier.set_auto(true))
 
@@ -125,6 +129,7 @@ func _add_producer(product: String, pos: Vector3, cap: int, every: float) -> Nod
 	p.setup(product, cap, every)
 	p.position = pos
 	add_child(p)
+	producers.append(p)
 	return p
 
 
@@ -147,6 +152,13 @@ func _add_unlock(id: String, cost: int, pos: Vector3, on_unlock: Callable) -> vo
 	z.position = pos
 	add_child(z)
 	z.unlocked.connect(on_unlock)
+
+
+func _hire_staff(at: Vector3) -> void:
+	var st := StaffScript.new()
+	st.main = self
+	st.position = at
+	add_child(st)
 
 
 # ---------- customers ----------

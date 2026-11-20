@@ -40,6 +40,15 @@ func _process(delta: float) -> void:
 			_refresh()
 
 
+func free_space() -> int:
+	return capacity - stock
+
+
+func add_items(n: int) -> void:
+	stock = mini(stock + n, capacity)
+	_refresh()
+
+
 func take_one() -> bool:
 	if stock <= 0:
 		return false
