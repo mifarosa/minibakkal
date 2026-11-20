@@ -192,5 +192,60 @@ func _build_hud() -> void:
 	_money_label.position = Vector2(40, 40)
 	_money_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(_money_label)
+	_build_upgrade_panel(layer)
 	Game.money_changed.connect(func(v): _money_label.text = "$ %d" % v)
 	_money_label.text = "$ %d" % Game.money
+
+
+func _build_upgrade_panel(layer: CanvasLayer) -> void:
+	var panel := PanelContainer.new()
+	panel.visible = false
+	panel.position = Vector2(140, 300)
+	panel.custom_minimum_size = Vector2(800, 0)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 16)
+	panel.add_child(box)
+	var title := Label.new()
+	title.text = "Upgrades"
+	title.add_theme_font_size_override("font_size", 48)
+	box.add_child(title)
+
+	var buttons := {}
+	for id in Game.UPGRADES:
+		var b := Button.new()
+		b.add_theme_font_size_override("font_size", 40)
+		b.custom_minimum_size = Vector2(0, 110)
+		b.pressed.connect(func(): Game.buy_upgrade(id))
+		box.add_child(b)
+		buttons[id] = b
+	var refresh := func():
+		for id in buttons:
+			var b: Button = buttons[id]
+			var name: String = Game.UPGRADES[id][0]
+			if Game.is_maxed(id):
+				b.text = "%s  Lv %d (MAX)" % [name, Game.level(id)]
+				b.disabled = true
+			else:
+				b.text = "%s  Lv %d  -  $%d" % [name, Game.level(id), Game.upgrade_cost(id)]
+				b.disabled = Game.money < Game.upgrade_cost(id)
+	Game.money_changed.connect(func(_v): refresh.call())
+	Game.upgrades_changed.connect(refresh)
+	refresh.call()
+
+	var close := Button.new()
+	close.text = "Close"
+	close.add_theme_font_size_override("font_size", 40)
+	close.custom_minimum_size = Vector2(0, 100)
+	close.pressed.connect(func(): panel.visible = false)
+	box.add_child(close)
+
+	var open := Button.new()
+	open.text = "Upgrades"
+	open.add_theme_font_size_override("font_size", 40)
+	open.position = Vector2(740, 36)
+	open.custom_minimum_size = Vector2(300, 100)
+	open.pressed.connect(func():
+		refresh.call()
+		panel.visible = true)
+	layer.add_child(open)
+	layer.add_child(panel)

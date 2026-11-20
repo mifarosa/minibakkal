@@ -3,7 +3,6 @@ extends Node3D
 
 enum State { IDLE, TO_PRODUCER, TO_SHELF }
 
-const SPEED := 4.0
 const CARRY := 4
 
 var main: Node3D  # provides `producers` and `shelves`
@@ -84,6 +83,6 @@ func _move_to(target: Vector3, delta: float) -> bool:
 	d.y = 0
 	if d.length() < 0.1:
 		return true
-	global_position += d.normalized() * min(SPEED * delta, d.length())
+	global_position += d.normalized() * min(Game.staff_speed() * delta, d.length())
 	rotation.y = atan2(d.x, d.z)
 	return false

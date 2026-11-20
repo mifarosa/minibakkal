@@ -1,8 +1,6 @@
 extends CharacterBody3D
 ## Player: moves with joystick / WASD and carries a stack of products.
 
-const SPEED := 6.0
-const CAPACITY := 8
 
 var carried: Array[String] = []
 var _stack := Node3D.new()
@@ -38,14 +36,14 @@ func _physics_process(_delta: float) -> void:
 	input = input.limit_length(1.0)
 	# Rotate by the isometric camera yaw so "up" on screen is "up" in the world.
 	var dir := Vector3(input.x, 0, input.y).rotated(Vector3.UP, PI / 4.0)
-	velocity = dir * SPEED
+	velocity = dir * Game.player_speed()
 	if dir.length() > 0.1:
 		rotation.y = lerp_angle(rotation.y, atan2(dir.x, dir.z), 0.25)
 	move_and_slide()
 
 
 func can_carry() -> bool:
-	return carried.size() < CAPACITY
+	return carried.size() < Game.carry_capacity()
 
 
 func add_item(product: String) -> void:
@@ -72,4 +70,4 @@ func _refresh() -> void:
 		c.queue_free()
 	for i in carried.size():
 		_stack.add_child(Game.box(Vector3(0.45, 0.25, 0.45), Game.color_of(carried[i]), Vector3(0, i * 0.28, 0)))
-	_max_label.visible = carried.size() >= CAPACITY
+	_max_label.visible = carried.size() >= Game.carry_capacity()

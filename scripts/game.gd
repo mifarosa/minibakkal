@@ -2,6 +2,7 @@ extends Node
 ## Global state: wallet, unlocked content, save/load and small helpers.
 
 signal money_changed(value: int)
+signal upgrades_changed
 
 const SAVE_PATH := "user://save.json"
 
@@ -15,6 +16,15 @@ const PRODUCTS := {
 var money: int = 0
 var unlocked: Dictionary = {}  # unlock id -> true
 var move_vec: Vector2 = Vector2.ZERO  # set by the virtual joystick
+var levels: Dictionary = {}  # upgrade id -> level
+
+# id -> [display name, base cost, max level]
+const UPGRADES := {
+	"speed": ["Move speed", 100, 5],
+	"capacity": ["Carry capacity", 150, 5],
+	"staff": ["Staff speed", 200, 5],
+	"income": ["Sale income", 250, 5],
+}
 
 
 func add_money(amount: int) -> void:
@@ -33,7 +43,7 @@ func spend(amount: int) -> bool:
 func save_game() -> void:
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"money": money, "unlocked": unlocked}))
+		f.store_string(JSON.stringify({"money": money, "unlocked": unlocked, "levels": levels}))
 
 
 func load_game() -> void:
@@ -43,12 +53,47 @@ func load_game() -> void:
 	if data is Dictionary:
 		money = int(data.get("money", 0))
 		unlocked = data.get("unlocked", {})
+		levels = data.get("levels", {})
 	money_changed.emit(money)
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED:
 		save_game()
+
+
+# ---- upgrades ----
+
+func level(id: String) -> int:
+	return int(levels.get(id, 0))
+
+
+func upgrade_cost(id: String) -> int:
+	return roundi(UPGRADES[id][1] * pow(1.7, level(id)))
+
+
+func is_maxed(id: String) -> bool:
+	return level(id) >= UPGRADES[id][2]
+
+
+func buy_upgrade(id: String) -> bool:
+	if is_maxed(id) or not spend(upgrade_cost(id)):
+		return false
+	levels[id] = level(id) + 1
+	upgrades_changed.emit()
+	return true
+
+
+func player_speed() -> float:
+	return 6.0 * (1.0 + 0.12 * level("speed"))
+
+
+func carry_capacity() -> int:
+	return 8 + 2 * level("capacity")
+
+
+func staff_speed() -> float:
+	return 4.0 * (1.0 + 0.2 * level("staff"))
 
 
 # ---- helpers ----
@@ -58,7 +103,7 @@ func color_of(product: String) -> Color:
 
 
 func price_of(product: String) -> int:
-	return PRODUCTS[product][1]
+	return roundi(PRODUCTS[product][1] * (1.0 + 0.15 * level("income")))
 
 
 func box(size: Vector3, color: Color, pos: Vector3 = Vector3.ZERO) -> MeshInstance3D:
