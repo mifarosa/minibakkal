@@ -1,0 +1,28 @@
+name: Android build
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Android debug keystore
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates
+          mv /root/.local/share/godot/templates/* ~/.local/share/godot/export_templates/ || true
+          keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 9999
+          godot --headless --quit 2>/dev/null || true
+          echo 'export/android/debug_keystore = "'$PWD'/debug.keystore"' >> ~/.config/godot/editor_settings-4.3.tres || true
+      - name: Export APK
+        run: |
+          mkdir -p build
+          godot --headless --export-debug "Android" build/minibakkal.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: minibakkal-android
+          path: build/minibakkal.apk

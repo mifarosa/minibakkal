@@ -1,0 +1,29 @@
+name: iOS build (no Mac needed)
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot 4.3 + export templates
+        run: |
+          brew install --cask godot
+          curl -sL -o templates.tpz https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          mkdir -p ~/Library/Application\ Support/Godot/export_templates/4.3.stable
+          unzip -q templates.tpz -d tpl
+          mv tpl/templates/* ~/Library/Application\ Support/Godot/export_templates/4.3.stable/
+      - name: Export Xcode project
+        env:
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        run: |
+          mkdir -p build/ios
+          /Applications/Godot.app/Contents/MacOS/Godot --headless --export-release "iOS" build/ios/minibakkal.ipa || true
+      - name: Build for iOS simulator (unsigned)
+        run: |
+          xcodebuild -project build/ios/minibakkal.xcodeproj -scheme minibakkal -sdk iphonesimulator -configuration Debug CODE_SIGNING_ALLOWED=NO build || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: minibakkal-ios-xcodeproj
+          path: build/ios
