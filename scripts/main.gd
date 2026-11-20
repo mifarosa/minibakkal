@@ -32,7 +32,8 @@ func _ready() -> void:
 
 	cam = Camera3D.new()
 	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
-	cam.size = 16.0
+	cam.keep_aspect = Camera3D.KEEP_WIDTH
+	cam.size = 26.0
 	add_child(cam)
 	_follow()
 
@@ -54,8 +55,10 @@ func _process(_delta: float) -> void:
 
 
 func _follow() -> void:
-	cam.position = player.position + CAM_OFFSET
-	cam.look_at(player.position, Vector3.UP)
+	# Blend between the player and the store center so the whole shop stays in view.
+	var target := player.position * 0.5 + Vector3(5, 0, 0) * 0.5
+	cam.position = target + CAM_OFFSET
+	cam.look_at(target, Vector3.UP)
 
 
 # ---------- world ----------
@@ -67,12 +70,13 @@ func _build_environment() -> void:
 	e.background_color = Color(0.74, 0.92, 0.4)
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	e.ambient_light_color = Color(1, 1, 1)
-	e.ambient_light_energy = 0.6
+	e.ambient_light_energy = 0.15
 	env.environment = e
 	add_child(env)
 
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-55, 45, 0)
+	sun.light_energy = 0.55
 	sun.shadow_enabled = true
 	add_child(sun)
 

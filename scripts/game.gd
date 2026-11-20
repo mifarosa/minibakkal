@@ -94,6 +94,7 @@ func label(text: String, pos: Vector3, size: int = 48) -> Label3D:
 	l.position = pos
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	l.font_size = size
+	l.pixel_size = 0.012
 	l.outline_size = 12
 	l.no_depth_test = true
 	return l
