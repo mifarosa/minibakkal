@@ -56,12 +56,14 @@ func _process(delta: float) -> void:
 
 
 func finish() -> void:
-	_leave()
+	_bubble.text = ":)"
+	_bubble.modulate = Color(0.4, 1.0, 0.4)
+	_leave(true)
 
 
-func _leave() -> void:
+func _leave(happy: bool = false) -> void:
 	_state = State.LEAVING
-	_bubble.visible = false
+	_bubble.visible = happy
 
 
 func _move_to(target: Vector3, delta: float) -> bool:

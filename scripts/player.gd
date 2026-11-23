@@ -85,6 +85,6 @@ func _refresh() -> void:
 
 ## Pop-in animation for a newly picked up item.
 func _pop(n: Node3D) -> void:
-	n.scale = Vector3.ZERO
+	n.scale = Vector3.ONE * 0.01
 	var tw := n.create_tween()
 	tw.tween_property(n, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

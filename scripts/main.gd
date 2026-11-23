@@ -20,6 +20,7 @@ var shelves: Array[Node3D] = []
 var producers: Array[Node3D] = []
 var _money_label: Label
 var _customers := 0
+var _started := false
 
 
 func _ready() -> void:
@@ -45,6 +46,8 @@ func _ready() -> void:
 	spawn.autostart = true
 	spawn.timeout.connect(_spawn_customer)
 	add_child(spawn)
+
+	_started = true
 
 	var autosave := Timer.new()
 	autosave.wait_time = 10.0
@@ -104,6 +107,11 @@ func _build_environment() -> void:
 		bu.position = b
 		add_child(bu)
 
+	# Farm fence
+	add_child(Models.fence(Vector3(-11, 0, 4.2), Vector3(-11, 0, 11)))
+	add_child(Models.fence(Vector3(-11, 0, 11), Vector3(10, 0, 11)))
+	add_child(Models.fence(Vector3(10, 0, 11), Vector3(10, 0, 4.6)))
+
 	# Store floor
 	add_child(Game.box(Vector3(20, 0.1, 10), Color(0.95, 0.72, 0.45), Vector3(5, 0.05, -4), 0.0))
 	# Back wall
@@ -141,6 +149,8 @@ func _add_producer(product: String, pos: Vector3, cap: int, every: float) -> Nod
 	p.position = pos
 	add_child(p)
 	producers.append(p)
+	if _started:
+		Models.pop(p, 0.4)
 	return p
 
 
@@ -150,6 +160,8 @@ func _add_shelf(product: String, pos: Vector3) -> Node3D:
 	s.position = pos
 	add_child(s)
 	shelves.append(s)
+	if _started:
+		Models.pop(s, 0.4)
 	return s
 
 
@@ -170,6 +182,8 @@ func _hire_staff(at: Vector3) -> void:
 	st.main = self
 	st.position = at
 	add_child(st)
+	if _started:
+		Models.pop(st, 0.4)
 
 
 # ---------- customers ----------
@@ -204,7 +218,11 @@ func _build_hud() -> void:
 	_money_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(_money_label)
 	_build_upgrade_panel(layer)
-	Game.money_changed.connect(func(v): _money_label.text = "$ %d" % v)
+	_money_label.pivot_offset = Vector2(20, 35)
+	Game.money_changed.connect(func(v):
+		_money_label.text = "$ %d" % v
+		_money_label.scale = Vector2(1.3, 1.3)
+		_money_label.create_tween().tween_property(_money_label, "scale", Vector2.ONE, 0.2))
 	_money_label.text = "$ %d" % Game.money
 
 

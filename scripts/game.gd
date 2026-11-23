@@ -171,7 +171,7 @@ func cylinder(radius: float, height: float, color: Color, pos: Vector3 = Vector3
 	return _mesh_node(mesh, color, pos, outline)
 
 
-func label(text: String, pos: Vector3, size: int = 48) -> Label3D:
+func label(text: String, pos: Vector3, size: int = 48, badge: bool = true) -> Label3D:
 	var l := Label3D.new()
 	l.text = text
 	l.position = pos
@@ -180,6 +180,20 @@ func label(text: String, pos: Vector3, size: int = 48) -> Label3D:
 	l.pixel_size = 0.012
 	l.outline_size = 12
 	l.no_depth_test = true
+	l.render_priority = 1
+	if badge:
+		var q := MeshInstance3D.new()
+		var qm := QuadMesh.new()
+		qm.size = Vector2(maxf(float(text.length()), 4.0) * size * 0.55 * 0.012 + 0.25, size * 1.25 * 0.012)
+		q.mesh = qm
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color(0.05, 0.05, 0.12, 0.6)
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+		mat.no_depth_test = true
+		q.material_override = mat
+		l.add_child(q)
 	return l
 
 

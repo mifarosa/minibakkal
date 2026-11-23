@@ -11,6 +11,7 @@ var _give_timer := 0.0
 var _player: Node3D = null
 var _label: Label3D
 var _items := Node3D.new()
+var _bed: Node3D
 
 
 func setup(p: String, cap: int, every: float) -> void:
@@ -20,9 +21,13 @@ func setup(p: String, cap: int, every: float) -> void:
 
 
 func _ready() -> void:
-	add_child(Models.bed(product))
+	_bed = Models.bed(product)
+	add_child(_bed)
+	var icon := Models.item(product)
+	icon.position = Vector3(-0.75, 2.2, 0)
+	add_child(icon)
 	add_child(_items)
-	_label = Game.label("0/%d" % capacity, Vector3(0, 2.2, 0), 40)
+	_label = Game.label("0/%d" % capacity, Vector3(0.3, 2.2, 0), 40)
 	add_child(_label)
 	var a := Game.zone(self, 2.0)
 	a.body_entered.connect(func(b): if b is CharacterBody3D: _player = b)
@@ -44,6 +49,16 @@ func _process(delta: float) -> void:
 			stock -= 1
 			_player.add_item(product)
 			_refresh()
+	_grow()
+
+
+func _grow() -> void:
+	if not _bed.has_meta("plants"):
+		return
+	var g := clampf((float(stock) + _timer / interval) / float(capacity), 0.0, 1.0)
+	for p in _bed.get_meta("plants"):
+		p.scale = Vector3.ONE * (0.55 + 0.45 * g)
+		(p.get_meta("fruit") as Node3D).visible = stock > 0 or g > 0.5
 
 
 func take_one() -> bool:

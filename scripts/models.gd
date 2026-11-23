@@ -102,6 +102,7 @@ static func bed(product: String) -> Node3D:
 		return n
 	n.add_child(Game.box(Vector3(2.7, 0.3, 1.1), SOIL, Vector3(0, 0.15, -0.25)))
 	n.add_child(Game.box(Vector3(2.8, 0.1, 1.2), WOOD, Vector3(0, 0.3, -0.25), 0.04))
+	var plants: Array = []
 	for x in [-0.9, 0.0, 0.9]:
 		var plant := _n(Vector3(x, 0.35, -0.25))
 		plant.add_child(Game.cylinder(0.05, 0.6, LEAF, Vector3(0, 0.3, 0), 0.02))
@@ -109,7 +110,10 @@ static func bed(product: String) -> Node3D:
 		var fruit := item(product)
 		fruit.position = Vector3(0.2, 0.62, 0.15)
 		plant.add_child(fruit)
+		plant.set_meta("fruit", fruit)
+		plants.append(plant)
 		n.add_child(plant)
+	n.set_meta("plants", plants)
 	return n
 
 
@@ -152,3 +156,25 @@ static func coin() -> MeshInstance3D:
 	var c := Game.cylinder(0.14, 0.05, Color(1.0, 0.82, 0.15), Vector3.ZERO, 0.02)
 	c.rotation.x = PI / 2.0
 	return c
+
+
+static func fence(a: Vector3, b: Vector3) -> Node3D:
+	var n := _n()
+	var length := a.distance_to(b)
+	var dir := (b - a).normalized()
+	var posts := int(length / 1.5)
+	for i in posts + 1:
+		var at := a + dir * minf(i * 1.5, length)
+		n.add_child(Game.box(Vector3(0.2, 1.0, 0.2), WOOD_LIGHT, at + Vector3(0, 0.5, 0), 0.04))
+	for h in [0.4, 0.8]:
+		var rail := Game.box(Vector3(0.08, 0.1, length), WOOD, (a + b) / 2.0 + Vector3(0, h, 0), 0.0)
+		rail.rotation.y = atan2(dir.x, dir.z)
+		n.add_child(rail)
+	return n
+
+
+## Scale-in "pop" animation for a node that is already in the tree.
+static func pop(n: Node3D, time: float = 0.2) -> void:
+	n.scale = Vector3.ONE * 0.01
+	var tw := n.create_tween()
+	tw.tween_property(n, "scale", Vector3.ONE, time).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

@@ -8,6 +8,7 @@ var _player: Node3D = null
 var _give_timer := 0.0
 var _label: Label3D
 var _items := Node3D.new()
+var _last_stock := 0
 
 
 func setup(p: String, cap: int = 8) -> void:
@@ -22,7 +23,10 @@ func stand_point() -> Vector3:
 func _ready() -> void:
 	add_child(Models.shelf())
 	add_child(_items)
-	_label = Game.label("0/%d" % capacity, Vector3(0, 2.4, 0), 40)
+	_label = Game.label("0/%d" % capacity, Vector3(0.3, 2.4, 0), 40)
+	var icon := Models.item(product)
+	icon.position = Vector3(-0.75, 2.4, 0)
+	add_child(icon)
 	add_child(_label)
 	var a := Game.zone(self, 2.4)
 	a.body_entered.connect(func(b): if b is CharacterBody3D: _player = b)
@@ -65,3 +69,6 @@ func _refresh() -> void:
 		var it := Models.item(product)
 		it.position = Vector3(-0.95 + (i % 4) * 0.63, 1.45 + (i / 4) * 0.42, 0.05)
 		_items.add_child(it)
+		if i >= _last_stock:
+			Models.pop(it)
+	_last_stock = stock
