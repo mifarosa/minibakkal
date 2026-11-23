@@ -106,31 +106,69 @@ func price_of(product: String) -> int:
 	return roundi(PRODUCTS[product][1] * (1.0 + 0.15 * level("income")))
 
 
-func box(size: Vector3, color: Color, pos: Vector3 = Vector3.ZERO) -> MeshInstance3D:
+const TOON := preload("res://shaders/toon.gdshader")
+const OUTLINE := preload("res://shaders/outline.gdshader")
+
+var _mat_cache: Dictionary = {}
+var _outline_mats: Dictionary = {}
+
+
+## Toon material for a color, with a black outline pass. Cached per (color, outline thickness).
+func toon_mat(color: Color, outline: float = 0.08) -> ShaderMaterial:
+	var key := str(color.to_html(), "_", outline)
+	if _mat_cache.has(key):
+		return _mat_cache[key]
+	var m := ShaderMaterial.new()
+	m.shader = TOON
+	m.set_shader_parameter("albedo_color", color)
+	if outline > 0.0:
+		if not _outline_mats.has(outline):
+			var o := ShaderMaterial.new()
+			o.shader = OUTLINE
+			o.set_shader_parameter("thickness", outline)
+			_outline_mats[outline] = o
+		m.next_pass = _outline_mats[outline]
+	_mat_cache[key] = m
+	return m
+
+
+func _mesh_node(mesh: Mesh, color: Color, pos: Vector3, outline: float) -> MeshInstance3D:
 	var m := MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = size
 	m.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 1.0
-	m.material_override = mat
+	m.material_override = toon_mat(color, outline)
 	m.position = pos
 	return m
 
 
-func capsule(radius: float, height: float, color: Color, pos: Vector3 = Vector3.ZERO) -> MeshInstance3D:
-	var m := MeshInstance3D.new()
+func box(size: Vector3, color: Color, pos: Vector3 = Vector3.ZERO, outline: float = 0.08) -> MeshInstance3D:
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	return _mesh_node(mesh, color, pos, outline)
+
+
+func capsule(radius: float, height: float, color: Color, pos: Vector3 = Vector3.ZERO, outline: float = 0.08) -> MeshInstance3D:
 	var mesh := CapsuleMesh.new()
 	mesh.radius = radius
 	mesh.height = height
-	m.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 1.0
-	m.material_override = mat
-	m.position = pos
-	return m
+	return _mesh_node(mesh, color, pos, outline)
+
+
+func sphere(radius: float, color: Color, pos: Vector3 = Vector3.ZERO, outline: float = 0.06) -> MeshInstance3D:
+	var mesh := SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = radius * 2.0
+	mesh.radial_segments = 16
+	mesh.rings = 8
+	return _mesh_node(mesh, color, pos, outline)
+
+
+func cylinder(radius: float, height: float, color: Color, pos: Vector3 = Vector3.ZERO, outline: float = 0.06) -> MeshInstance3D:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = radius
+	mesh.bottom_radius = radius
+	mesh.height = height
+	mesh.radial_segments = 16
+	return _mesh_node(mesh, color, pos, outline)
 
 
 func label(text: String, pos: Vector3, size: int = 48) -> Label3D:

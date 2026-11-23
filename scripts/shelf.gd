@@ -20,7 +20,7 @@ func stand_point() -> Vector3:
 
 
 func _ready() -> void:
-	add_child(Game.box(Vector3(2.6, 1.2, 1.0), Color(0.62, 0.4, 0.2), Vector3(0, 0.6, 0)))
+	add_child(Models.shelf())
 	add_child(_items)
 	_label = Game.label("0/%d" % capacity, Vector3(0, 2.4, 0), 40)
 	add_child(_label)
@@ -62,5 +62,6 @@ func _refresh() -> void:
 	for c in _items.get_children():
 		c.queue_free()
 	for i in stock:
-		_items.add_child(Game.box(Vector3(0.45, 0.3, 0.45), Game.color_of(product),
-			Vector3(-1.0 + (i % 4) * 0.62, 1.35 + (i / 4) * 0.35, 0)))
+		var it := Models.item(product)
+		it.position = Vector3(-0.95 + (i % 4) * 0.63, 1.45 + (i / 4) * 0.42, 0.05)
+		_items.add_child(it)

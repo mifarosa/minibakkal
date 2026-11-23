@@ -5,6 +5,9 @@ extends CharacterBody3D
 var carried: Array[String] = []
 var _stack := Node3D.new()
 var _max_label: Label3D
+var _model: Node3D
+var _t := 0.0
+var _last_count := 0
 
 
 func _ready() -> void:
@@ -16,8 +19,8 @@ func _ready() -> void:
 	shape.shape = cap
 	shape.position.y = 0.8
 	add_child(shape)
-	add_child(Game.capsule(0.4, 1.4, Color(0.25, 0.55, 0.95), Vector3(0, 0.8, 0)))
-	add_child(Game.box(Vector3(0.5, 0.15, 0.5), Color(0.1, 0.1, 0.1), Vector3(0, 1.6, 0)))
+	_model = Models.person(Color(0.25, 0.55, 0.95), Color(0.15, 0.15, 0.2))
+	add_child(_model)
 	_stack.position = Vector3(0, 1.0, 0.55)
 	add_child(_stack)
 	_max_label = Game.label("MAX", Vector3(0, 3.6, 0), 40)
@@ -40,6 +43,8 @@ func _physics_process(_delta: float) -> void:
 	if dir.length() > 0.1:
 		rotation.y = lerp_angle(rotation.y, atan2(dir.x, dir.z), 0.25)
 	move_and_slide()
+	_t += _delta
+	Models.bob(_model, _t, dir.length() > 0.1)
 
 
 func can_carry() -> bool:
@@ -69,5 +74,17 @@ func _refresh() -> void:
 	for c in _stack.get_children():
 		c.queue_free()
 	for i in carried.size():
-		_stack.add_child(Game.box(Vector3(0.45, 0.25, 0.45), Game.color_of(carried[i]), Vector3(0, i * 0.28, 0)))
+		var it := Models.item(carried[i])
+		it.position = Vector3(0, i * 0.4, 0)
+		_stack.add_child(it)
+		if i == carried.size() - 1 and carried.size() > _last_count:
+			_pop(it)
+	_last_count = carried.size()
 	_max_label.visible = carried.size() >= Game.carry_capacity()
+
+
+## Pop-in animation for a newly picked up item.
+func _pop(n: Node3D) -> void:
+	n.scale = Vector3.ZERO
+	var tw := n.create_tween()
+	tw.tween_property(n, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

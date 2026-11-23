@@ -10,7 +10,7 @@ const UnlockScript := preload("res://scripts/unlock_zone.gd")
 const JoystickScript := preload("res://scripts/joystick.gd")
 const StaffScript := preload("res://scripts/staff.gd")
 
-const CAM_OFFSET := Vector3(12, 14, 12)
+const CAM_OFFSET := Vector3(30, 35, 30)
 const ENTRANCE := Vector3(15, 0, 0)
 
 var player: CharacterBody3D
@@ -35,6 +35,7 @@ func _ready() -> void:
 	cam = Camera3D.new()
 	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
 	cam.keep_aspect = Camera3D.KEEP_WIDTH
+	cam.far = 300.0
 	cam.size = 26.0
 	add_child(cam)
 	_follow()
@@ -86,17 +87,27 @@ func _build_environment() -> void:
 	var ground := StaticBody3D.new()
 	var gshape := CollisionShape3D.new()
 	var gbox := BoxShape3D.new()
-	gbox.size = Vector3(80, 1, 80)
+	gbox.size = Vector3(200, 1, 200)
 	gshape.shape = gbox
 	gshape.position.y = -0.5
 	ground.add_child(gshape)
-	ground.add_child(Game.box(Vector3(80, 1, 80), Color(0.72, 0.92, 0.38), Vector3(0, -0.5, 0)))
+	ground.add_child(Game.box(Vector3(200, 1, 200), Color(0.55, 0.8, 0.3), Vector3(0, -0.5, 0), 0.0))
 	add_child(ground)
 
+	# Scenery
+	for t in [Vector3(-14, 0, -8), Vector3(-10, 0, -12), Vector3(18, 0, 6), Vector3(22, 0, -10), Vector3(-14, 0, 13), Vector3(14, 0, 14)]:
+		var tr := Models.tree(randf_range(0.9, 1.3))
+		tr.position = t
+		add_child(tr)
+	for b in [Vector3(-12, 0, 2), Vector3(16, 0, 10), Vector3(-6, 0, 12), Vector3(20, 0, -3)]:
+		var bu := Models.bush()
+		bu.position = b
+		add_child(bu)
+
 	# Store floor
-	add_child(Game.box(Vector3(20, 0.1, 10), Color(1.0, 0.8, 0.5), Vector3(5, 0.05, -4)))
+	add_child(Game.box(Vector3(20, 0.1, 10), Color(0.95, 0.72, 0.45), Vector3(5, 0.05, -4), 0.0))
 	# Back wall
-	add_child(Game.box(Vector3(20, 3, 0.4), Color(0.85, 0.9, 0.9), Vector3(5, 1.5, -9.2)))
+	add_child(Game.box(Vector3(20, 3, 0.4), Color(0.85, 0.9, 0.9), Vector3(5, 1.5, -9.2), 0.0))
 
 
 func _build_stations() -> void:

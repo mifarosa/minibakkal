@@ -14,17 +14,23 @@ var arrived := false
 var _state := State.TO_SHELF
 var _wait := 0.0
 var _bubble: Label3D
+var _model: Node3D
+var _t := 0.0
+var _moving := false
 
 
 func _ready() -> void:
 	var col := Color.from_hsv(randf(), 0.6, 0.95)
-	add_child(Game.capsule(0.35, 1.3, col, Vector3(0, 0.75, 0)))
+	_model = Models.person(col, Color.from_hsv(randf(), 0.5, 0.6), randf() < 0.5)
+	add_child(_model)
 	_bubble = Game.label("?", Vector3(0, 2.4, 0), 36)
 	_bubble.modulate = Game.color_of(wanted)
 	add_child(_bubble)
 
 
 func _process(delta: float) -> void:
+	_t += delta
+	_moving = false
 	match _state:
 		State.TO_SHELF:
 			if _move_to(shelf.stand_point(), delta):
@@ -46,6 +52,7 @@ func _process(delta: float) -> void:
 		State.LEAVING:
 			if _move_to(exit_point, delta):
 				queue_free()
+	Models.bob(_model, _t, _moving)
 
 
 func finish() -> void:
@@ -62,6 +69,7 @@ func _move_to(target: Vector3, delta: float) -> bool:
 	d.y = 0
 	if d.length() < 0.1:
 		return true
+	_moving = true
 	global_position += d.normalized() * min(SPEED * delta, d.length())
 	rotation.y = atan2(d.x, d.z)
 	return false

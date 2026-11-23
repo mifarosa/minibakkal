@@ -9,13 +9,11 @@ var _npc: Node3D
 
 
 func _ready() -> void:
-	add_child(Game.box(Vector3(3.0, 1.0, 1.0), Color(0.45, 0.85, 0.7), Vector3(0, 0.5, 0)))
-	add_child(Game.box(Vector3(0.7, 0.5, 0.5), Color(0.2, 0.2, 0.25), Vector3(0.7, 1.25, 0)))
+	add_child(Models.counter())
 	var a := Game.zone(self, 2.4)
 	a.body_entered.connect(func(b): if b is CharacterBody3D: _player = b)
 	a.body_exited.connect(func(b): if b == _player: _player = null)
-	_npc = Node3D.new()
-	_npc.add_child(Game.capsule(0.4, 1.4, Color(0.8, 0.3, 0.8), Vector3(0, 0.8, 0)))
+	_npc = Models.person(Color(0.8, 0.3, 0.8), Color(0.2, 0.2, 0.3))
 	_npc.position = Vector3(0, 0, -1.2)
 	_npc.visible = false
 	add_child(_npc)

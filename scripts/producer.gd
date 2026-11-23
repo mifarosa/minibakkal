@@ -20,7 +20,7 @@ func setup(p: String, cap: int, every: float) -> void:
 
 
 func _ready() -> void:
-	add_child(Game.box(Vector3(2.6, 0.2, 1.6), Color(0.55, 0.38, 0.2), Vector3(0, 0.1, 0)))
+	add_child(Models.bed(product))
 	add_child(_items)
 	_label = Game.label("0/%d" % capacity, Vector3(0, 2.2, 0), 40)
 	add_child(_label)
@@ -63,4 +63,6 @@ func _refresh() -> void:
 	for c in _items.get_children():
 		c.queue_free()
 	for i in stock:
-		_items.add_child(Game.box(Vector3(0.4, 0.4, 0.4), Game.color_of(product), Vector3(-0.9 + i * 0.6, 0.4, 0)))
+		var it := Models.item(product)
+		it.position = Vector3(-0.9 + i * 0.6, 0.45, 0.95)
+		_items.add_child(it)
